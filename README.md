@@ -75,21 +75,6 @@ Values could also be 0-arity functions:
 ;; => "Winner is #437"
 ```
 
-`template` can also pick up value from defined var.
-In order to achieve that, `resolve?` option should be set to `true`:
-```clj
-(def subject "Hi there!")
-
-(template {:email/subject :<subject> :email/body :<body>} {:body "Welcome to company"})
-;; => {:email/subject nil, :email/body "Welcome to company"}
-
-(template ^:resolve {:email/subject :<subject> :email/body :<body>} {:body "Welcome to company"})
-;; => {:email/subject "Hi there!", :email/body "Welcome to company"}
-
-(template ^:resolve {:email/subject :<subject> :email/body :<body>} {:subject "Hello" :body "Welcome to company"})
-;; => {:email/subject "Hello", :email/body "Welcome to company"}
-```
-
 ### Auto-currying
 
 When called with single argument, `template` returns function of values:

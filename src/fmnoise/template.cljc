@@ -18,7 +18,6 @@
   `:=>` - template form: string or data structure
   `:default` - sets a default for all missing values
   `:defaults` - a map with default values for certain keys
-  `:resolve?` or `:resolve` (when supplied as meta) - determines if var lookup/resolve should be performed (defaults to false)
   `:throw?` or `:throw` (when supplied as meta) - specifies if exception should be thrown in case of missing value and not having any defaults (defaults to false)
   `:throw-on` - a set with keys which should be always provided either through values map or defaults map
   `:brackets` - a keyword indicating types of brackets used for placeholders in template string. Valid options are:
@@ -27,9 +26,9 @@
      - `:angle` eg <user/name>
   "
   ([options] (partial template options))
-  ([{:keys [=> default defaults resolve? throw? throw-on brackets] :as options} values]
+  ([{:keys [=> default defaults throw? throw-on brackets] :as options} values]
    (if (or (string? options) (and (some? options) (nil? =>)))
-     (-> options meta (assoc :=> options) (set/rename-keys {:throw :throw? :resolve :resolve?}) (template values))
+     (-> options meta (assoc :=> options) (set/rename-keys {:throw :throw?}) (template values))
      (when =>
        (let [data? (not (string? =>))
              placeholder (if data?
@@ -42,7 +41,6 @@
                                 value (or (get values kvar) (get defaults kvar)
                                           (get values var) (get defaults var)
                                           (get values svar) (get defaults svar)
-                                          (when resolve? (some-> svar resolve deref))
                                           (when (and throw-on
                                                      (or (contains? throw-on kvar)
                                                          (contains? throw-on var)

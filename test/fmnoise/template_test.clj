@@ -37,11 +37,6 @@
              (template {:=> "I'm {user/status}" :defaults {"user/status" (constantly "online")}} nil)
              (template {:=> "I'm {user/status}" :defaults {'user/status (constantly "online")}} nil)
              (template {:=> "I'm {user/status}" :default (constantly "online")} nil))))
-    (testing "resolve?"
-      (is (= (str "System says: " greeting)
-             (template {:=> "System says: {greeting}" :resolve? true} nil)
-             (template {:=> "System says: {globals/greeting}" :resolve? true} nil)))
-      (is (= "System says: Hi" (template {:=> "System says: {greeting}" :resolve? true} {:greeting "Hi"}))))
     (testing "throw?"
       (is (= "Welcome to _, _!" (template {:=> tstr :default "_" :throw? true} nil)))
       (is (thrown-with-msg?
@@ -88,13 +83,6 @@
              (template {:=> {:status :<user/status>} :defaults {"user/status" (constantly "online")}} nil)
              (template {:=> {:status :<user/status>} :defaults {'user/status (constantly "online")}} nil)
              (template {:=> {:status :<user/status>} :default (constantly "online")} nil))))
-    (testing "resolve?"
-      (is (= {:system/greeting greeting}
-             (template ^:resolve {:system/greeting :<greeting>} nil)
-             (template ^:resolve {:system/greeting :<globals/greeting>} nil)))
-      (is (= {:system/greeting "Hi"}
-             (template ^:resolve {:system/greeting :<greeting>} {:greeting "Hi"})
-             (template ^:resolve {:system/greeting :<globals/greeting>} {:globals/greeting "Hi"}))))
     (testing "throw?"
       (is (= [[:db/add '_ :user/name '_]]
              (template {:=> ds :default '_ :throw? true} nil)))
