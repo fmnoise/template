@@ -1,4 +1,4 @@
-(defproject org.clojars.fmnoise/template "0.1.0-SNAPSHOT"
+(defproject org.clojars.fmnoise/template "0.1.0"
   :description "Yet another templating library"
   :license {:name "EPL-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
