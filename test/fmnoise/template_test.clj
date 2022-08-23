@@ -1,6 +1,6 @@
 (ns fmnoise.template-test
   (:require [clojure.test :refer [deftest testing is]]
-            [fmnoise.template :refer [template]]))
+            [fmnoise.template :refer [template template-keys]]))
 
 (deftest template-string-test
   (let [tstr "Welcome to {system}, {visitor/name}!"]
@@ -96,3 +96,29 @@
            clojure.lang.ExceptionInfo
            #"Missing value for template variable"
            (template {:=> ds :throw-on #{:db/id} :default "***"} nil))))))
+
+(deftest string-template-keys-test
+  (testing "duplicate keys"
+    (is (= #{:user/name :user/email} (template-keys "{user/name:%s} {user/name:  %s} {user/email}"))))
+
+  (testing "brackets"
+    (is (= #{:user/name :user/email} (template-keys "<user/name:%s> <user/email>" {:brackets :angle})))
+    (is (= #{:user/name :user/email} (template-keys "[user/name:%s] [user/email]" {:brackets :square})))
+    (testing "fallback to curly"
+      (is (= #{:user/name :user/email} (template-keys "{user/name:%s} {user/email}" {:brackets :unknown})))))
+
+  (testing "as"
+    (is (= #{"user/name" "user/email"} (template-keys "{user/name:%s} {user/email}" {:as :strings})))
+    (is (= #{'user/name 'user/email} (template-keys "{user/name:%s} {user/email}" {:as :symbols})))
+    (testing "fallback to keyword"
+      (is (= #{:user/name :user/email} (template-keys "{user/name:%s} {user/email}" {:as :unknown}))))))
+
+(deftest data-template-keys-test
+  (testing "duplicate keys"
+    (is (= #{:user/name :user/email} (template-keys [:<user/name> :<user/name> :<user/email>]))))
+
+  (testing "as"
+    (is (= #{"user/name" "user/email"} (template-keys [:<user/name> :<user/email>] {:as :strings})))
+    (is (= #{'user/name 'user/email} (template-keys [:<user/name> :<user/email>] {:as :symbols})))
+    (testing "fallback to keyword"
+      (is (= #{:user/name :user/email} (template-keys [:<user/name> :<user/email>] {:as :unknown}))))))

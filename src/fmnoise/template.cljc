@@ -5,6 +5,31 @@
             #?@(:cljs [[goog.string :as gstring]
                        [goog.string.format]])))
 
+(defn template-keys
+  "Returns set of keys used in given `template` form (string or data). Can accept options as optional 2nd argument:
+  `:as` - determines how to interpret the keys, possible values are: `:symbols`, `:strings`, `:keywords` (default)
+  `:brackets` - a keyword indicating types of brackets used for placeholders in string template form. Valid options are:
+   - `:curly` (default) eg {user/name}
+   - `:square` eg [user/name]
+   - `:angle` eg <user/name>"
+  {:added "0.2.0"}
+  ([form] (template-keys form nil))
+  ([form {:keys [brackets as]}]
+   (let [data? (not (string? form))
+         output (case as
+                  :symbols symbol
+                  :strings identity
+                  keyword)
+         placeholder (if data?
+                       #":\<([^\>]+)\>"
+                       (case brackets
+                         :square #"\[([^\]]+)\]"
+                         :angle #"\<([^\>]+)\>"
+                         #"\{([^\}]+)\}"))]
+     (into #{}
+           (map (comp output first #(str/split % #":") last))
+           (re-seq placeholder (if data? (str form) form))))))
+
 (defn template
   "Replaces placeholders in template form (string or data structure) with values from supplied map.
   Keys in map can be either keywords or symbols or strings.
