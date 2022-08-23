@@ -31,7 +31,7 @@
            (re-seq placeholder (if data? (str form) form))))))
 
 (defn template
-  "Replaces placeholders in template form (string or data structure) with values from supplied map.
+  "Replaces placeholders in template form (string or data structure) with values from supplied source (should compatible with `clojure.core/get`).
   Keys in map can be either keywords or symbols or strings.
   String placeholder shoud be valid keyword name (without colon) in curly/square/angle braces (configurable) eg {name}, {user/name}, [user/name], <user/name>.
   String placeholder can contain desired format separated with colon eg {order/date:%tD}.
@@ -43,15 +43,25 @@
   `:=>` - template form: string or data structure
   `:default` - sets a default for all missing values
   `:defaults` - a map with default values for certain keys
+  `:on-missing` - a 1-arg function which accepts a map with `:name` (contains placeholder name) and `:values` (contains values map)
   `:throw?` or `:throw` (when supplied as meta) - specifies if exception should be thrown in case of missing value and not having any defaults (defaults to false)
   `:throw-on` - a set with keys which should be always provided either through values map or defaults map
   `:brackets` - a keyword indicating types of brackets used for placeholders in template string. Valid options are:
      - `:curly` (default) eg {user/name}
      - `:square` eg [user/name]
      - `:angle` eg <user/name>
+
+  Value for each key is resolved in the following order:
+  1. `keyword` key lookup in supplied values and defaults (if present)
+  2. `string` key lookup in supplied values and defaults (if present)
+  3. `symbol` key lookup in supplied values and defaults (if present)
+  4. if `on-missing` is provided, it's called with key name and values object
+  5. if `throw-on` is provided and has either keyword or string or symbol key then `ExceptionInfo` is thrown
+  6. if `default` is provided, it's used
+  7. if `throw?` is set to true then `ExceptionInfo` is thrown
   "
   ([options] (partial template options))
-  ([{:keys [=> default defaults throw? throw-on brackets] :as options} values]
+  ([{:keys [=> default defaults on-missing throw? throw-on brackets] :as options} values]
    (if (or (string? options) (and (some? options) (nil? =>)))
      (-> options meta (assoc :=> options) (set/rename-keys {:throw :throw?}) (template values))
      (when =>
@@ -66,14 +76,18 @@
                                 value (or (get values kvar) (get defaults kvar)
                                           (get values var) (get defaults var)
                                           (get values svar) (get defaults svar)
+                                          (when on-missing
+                                            (on-missing {:name var :values values :options options}))
                                           (when (and throw-on
                                                      (or (contains? throw-on kvar)
                                                          (contains? throw-on var)
                                                          (contains? throw-on svar)))
-                                            (throw (ex-info (str "Missing value for template variable: " var) (assoc options :values values))))
+                                            (throw (ex-info (str "Missing value for template variable: " var)
+                                                            {:options options :values values})))
                                           default
                                           (when throw?
-                                            (throw (ex-info (str "Missing value for template variable: " var) (assoc options :values values)))))
+                                            (throw (ex-info (str "Missing value for template variable: " var)
+                                                            {:options options :values values}))))
                                 output (if data? pr-str str)
                                 value (if (fn? value) (value) value)]
                             (if (and fmt value)
@@ -81,7 +95,7 @@
                                 #?(:clj (format fmt value) :cljs (gstring/format fmt value))
                                 (catch #?(:clj Exception :cljs :default) e
                                   (throw (ex-info (str "Failed to format template variable " var  " as " fmt " with " value)
-                                                  (assoc options :values values)
+                                                  {:options options :values values}
                                                   e))))
                               (output value))))]
          (cond-> (str/replace (str =>) placeholder replace-fn)
