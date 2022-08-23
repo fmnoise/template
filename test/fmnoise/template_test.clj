@@ -1,6 +1,5 @@
 (ns fmnoise.template-test
   (:require [clojure.test :refer [deftest testing is]]
-            [fmnoise.globals :as globals :refer [greeting]]
             [fmnoise.template :refer [template]]))
 
 (deftest template-string-test
