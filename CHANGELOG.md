@@ -1,4 +1,4 @@
-# 0.2.0
+# 0.2.0 - 2022-08-23
 
 * Add `template-keys`
 * Add `on-missing` option to `template`
