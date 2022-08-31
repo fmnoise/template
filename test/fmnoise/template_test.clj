@@ -122,6 +122,13 @@
                         :on-missing (fn [{:keys [name]}] [:place/for name])}
                        {:user/name "Joe"}))))
 
+    (testing "remove-nils"
+      (is (= [:Hi] (template {:=> [:Hi :<user/name>] :remove-nils? true} nil)))
+      (is (= [:Hi] (template ^:remove-nils [:Hi :<user/name>] nil)))
+      (is (= [:Hi "Joe"]
+             (template {:=> [:Hi :<user/name>] :remove-nils? true}
+                       {:user/name "Joe"}))))
+
     (testing "options as meta"
       (is (= [[:db/add 123 :user/name "Joe"]]
              (template (with-meta ds {:defaults {:db/id 123 :user/name "Joe"}}) nil)

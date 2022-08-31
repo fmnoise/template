@@ -45,6 +45,7 @@
   `:defaults` - a map with default values for certain keys
   `:on-missing` - a 1-arg function which accepts a map with `:name` (contains placeholder name) and `:values` (contains values map)
   `:throw?` or `:throw` (when supplied as meta) - specifies if exception should be thrown in case of missing value and not having any defaults (defaults to false)
+  `:remove-nils?` or `:remove-nils` (when supplied as meta) - specifies if binding for missing value should be removed. Makes the most sense for data templates.
   `:throw-on` - a set with keys which should be always provided either through values map or defaults map
   `:brackets` - a keyword indicating types of brackets used for placeholders in template string. Valid options are:
      - `:curly` (default) eg {user/name}
@@ -61,9 +62,9 @@
   7. if `throw?` is set to true then `ExceptionInfo` is thrown
   "
   ([options] (partial template options))
-  ([{:keys [=> default defaults on-missing throw? throw-on brackets] :as options} values]
+  ([{:keys [=> default defaults on-missing throw? remove-nils? throw-on brackets] :as options} values]
    (if (or (string? options) (and (some? options) (nil? =>)))
-     (-> options meta (assoc :=> options) (set/rename-keys {:throw :throw?}) (template values))
+     (-> options meta (assoc :=> options) (set/rename-keys {:throw :throw? :remove-nils :remove-nils?}) (template values))
      (when =>
        (let [data? (not (string? =>))
              placeholder (if data?
@@ -97,6 +98,6 @@
                                   (throw (ex-info (str "Failed to format template variable " var  " as " fmt " with " value)
                                                   {:options options :values values}
                                                   e))))
-                              (output value))))]
+                              (if (and (nil? value) remove-nils?) "" (output value)))))]
          (cond-> (str/replace (str =>) placeholder replace-fn)
            data? edn/read-string))))))
