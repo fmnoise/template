@@ -151,7 +151,11 @@
       (is (thrown-with-msg?
            clojure.lang.ExceptionInfo
            #"Missing value for template variable"
-           (template {:=> ds :throw? true} nil))))
+           (template {:=> ds :throw? true} nil)))
+      (is (thrown-with-msg?
+           clojure.lang.ExceptionInfo
+           #"Missing value for template variable"
+           (template (with-meta ds {:throw true}) nil))))
 
     (testing "throw-on"
       (is (= [[:db/add "tempid" :user/name "***"]]
