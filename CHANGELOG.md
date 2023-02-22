@@ -1,3 +1,7 @@
+# 0.3.1 - 2023-02-22
+
+* Add possibility to configure brackets for data placeholders
+
 # 0.3.0 - 2022-08-31
 
 * Add `remove-nils?` option to `template`
