@@ -84,6 +84,13 @@
     (is (= [[:db/add 123 :user/name "Joe"]] (template ds {:db/id 123 :user/name "Joe"})))
     (is (= [[:db/add nil :user/name nil]] (template ds nil)))
 
+    (testing "brackets"
+      (let [ds-angle '[:db/add <db/id> :user/name <user/name>]
+            ds-square '{:db/id [db/id] :user/name [user/name]}
+            values {:db/id 123 :user/name "Joe"}]
+        (is (= [:db/add 123 :user/name "Joe"] (template {:=> ds-angle :brackets :angle} values)))
+        (is (= {:db/id 123 :user/name "Joe"} (template {:=> ds-square :brackets :square} values)))))
+
     (testing "default"
       (is (= [[:db/add "unknown" :user/name "unknown"]]
              (template {:=> ds :default "unknown"} nil))))

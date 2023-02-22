@@ -20,12 +20,10 @@
                   :symbols symbol
                   :strings identity
                   keyword)
-         placeholder (if data?
-                       #":\<([^\>]+)\>"
-                       (case brackets
-                         :square #"\[([^\]]+)\]"
-                         :angle #"\<([^\>]+)\>"
-                         #"\{([^\}]+)\}"))]
+         placeholder (case brackets
+                       :square #"\[([^\]]+)\]"
+                       :angle #"\<([^\>]+)\>"
+                       (if data? #":\<([^\>]+)\>" #"\{([^\}]+)\}"))]
      (into #{}
            (map (comp output first #(str/split % #":") last))
            (re-seq placeholder (if data? (str form) form))))))
@@ -35,7 +33,7 @@
   Keys in map can be either keywords or symbols or strings.
   String placeholder shoud be valid keyword name (without colon) in curly/square/angle braces (configurable) eg {name}, {user/name}, [user/name], <user/name>.
   String placeholder can contain desired format separated with colon eg {order/date:%tD}.
-  Data placeholder should be valid keyword name (without colon) in angle braces represented as keyword eg :<name> or :<user/name>.
+  Data placeholders is by default keywords in angle braces eg :<user/name>, but could be configured as square or angle braced values (without being keyword) eg '[user/name] or '<user/name>.
   Data placeholders can't contain formatting.
   First argument could be either template string, template data structure (if `:=>` key is missing) or options map.
   If first argument is a template data structure, options could be supplied as structure metadata.
@@ -67,9 +65,10 @@
      (-> options meta (assoc :=> options) (set/rename-keys {:throw :throw? :remove-nils :remove-nils?}) (template values))
      (when =>
        (let [data? (not (string? =>))
-             placeholder (if data?
-                           #":\<([^\>]+)\>"
-                           (case brackets :square #"\[([^\]]+)\]" :angle #"\<([^\>]+)\>" #"\{([^\}]+)\}"))
+             placeholder (case brackets
+                           :square #"\[([^\]]+)\]"
+                           :angle #"\<([^\>]+)\>"
+                           (if data? #":\<([^\>]+)\>" #"\{([^\}]+)\}"))
              replace-fn (fn [[_ m]]
                           (let [[var fmt] (if data? [m] (str/split m #":"))
                                 kvar (keyword var)
