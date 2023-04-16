@@ -58,7 +58,7 @@ Keys in values map for `template` could be either keywords or strings or symbols
 (template "Hi {user/name}!" {:user/name "Joe"})
 ;; => Hi Joe!
 
-(template "Hi {user/name/same}!" {"user/name" "Jim"})
+(template "Hi {user/name}!" {"user/name" "Jim"})
 ;; => Hi Jim!
 
 (template "Hi {user/name}!" {'user/name "Jane"})
